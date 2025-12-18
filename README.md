@@ -41,7 +41,7 @@ Nimbaha is designed for speed and precision, utilizing an **Asynchronous** core 
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/sepehrrostami/ai-trader.git](https://github.com/sepehrrostami/ai-trader.git)
+git clone https://github.com/sepehrrostami/ai-trader.git
 cd ai-trader
 ```
 ---
