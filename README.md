@@ -81,21 +81,20 @@ To run the bot 24/7 with a secure domain (HTTPS):
 
 1. Create Systemd Services
 Create a service file at /etc/systemd/system/bot.service:
-
-Ini, TOML
-
+```bash
 [Unit]
 Description=Nimbaha Trading Bot
 After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/root/nimbaha
+WorkingDirectory=/root/ai-trader
 ExecStart=/root/nimbaha/venv/bin/python3 main.py
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
+```
 
 Enable the services:
 
