@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trader Pro</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+            
+            --bg-anim-1: #0f172a; --bg-anim-2: #1e1b4b; --bg-anim-3: #312e81;
+            
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        [data-bs-theme="light"] {
+            --bg-anim-1: #f8fafc; --bg-anim-2: #e0f2fe; --bg-anim-3: #dbeafe;
+            --glass: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-main);
+            background: linear-gradient(-45deg, var(--bg-anim-1), var(--bg-anim-2), var(--bg-anim-3));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            font-family: var(--font-mono);
+        }
+
+        .log-line {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding: 4px 0;
+            white-space: pre-wrap;
+        }
+
+        .terminal-modal {
+            background: #0d1117;
+            color: #58a6ff;
+            font-family: var(--font-mono);
+            border: 1px solid #30363d;
+        }
+
+        .btn-theme-toggle {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            transition: 0.3s;
+        }
+        .btn-theme-toggle:hover { background: rgba(255,255,255,0.2); }
+
+        .table { --bs-table-bg: transparent; --bs-table-color: var(--text-main); }
+        th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; color: var(--text-muted); }
+        td { vertical-align: middle; }
+    </style>
+</head>
+<body class="py-5">
+
+    <div class="container">
+        
+        <div class="d-flex justify-content-between align-items-center mb-5 glass-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-25 p-2 rounded-3 text-primary">
+                    <i class="bi bi-cpu-fill fs-4"></i>
+                </div>
+                <div>
+                    <h4 class="m-0 fw-bold">AI Trader Pro</h4>
+                    <div class="small text-muted font-monospace" id="serverClock">Connecting...</div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <button class="btn btn-outline-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#logModal">
+                    <i class="bi bi-terminal-fill"></i> <span class="d-none d-md-inline">Terminal</span>
+                </button>
+                <button class="btn-theme-toggle" onclick="toggleTheme()">
+                    <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            
+            <div class="col-md-4">
+                <div class="glass-card h-100 d-flex flex-column justify-content-center text-center">
+                    <div class="dropdown mb-3 w-100">
+                        <button class="btn btn-lg btn-outline-light w-100 dropdown-toggle d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown">
+                            <span class="small opacity-75">Exchange:</span>
+                            <span id="exLabel" class="fw-bold">...</span>
+                        </button>
+                        <ul class="dropdown-menu w-100">
+                            <li><a class="dropdown-item" href="#" onclick="setSetting('exchange','MEXC')">MEXC Global</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setSetting('exchange','COINEX')">CoinEx</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="btn-group w-100 shadow-sm" role="group">
+                        <input type="radio" class="btn-check" name="mode" id="spot" onclick="setSetting('mode','SPOT')">
+                        <label class="btn btn-outline-success fw-bold" for="spot">SPOT</label>
+
+                        <input type="radio" class="btn-check" name="mode" id="fut" onclick="setSetting('mode','FUTURE')">
+                        <label class="btn btn-outline-danger fw-bold" for="fut">FUTURES</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="glass-card h-100 d-flex flex-column justify-content-center">
+                    <span class="text-muted small text-uppercase fw-bold mb-1">Total Balance (USDT)</span>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="stat-value text-primary" id="bal">...</div>
+                        <i class="bi bi-wallet2 fs-2 opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="glass-card h-100 d-flex flex-column justify-content-center">
+                    <span class="text-muted small text-uppercase fw-bold mb-2">Network Latency</span>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small opacity-75"><i class="bi bi-hdd-network me-2"></i>Exchange API:</span>
+                        <span class="badge rounded-pill px-2 py-1 font-monospace" id="pingExBadge">...</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small opacity-75"><i class="bi bi-globe me-2"></i>Internet:</span>
+                        <span class="badge rounded-pill px-2 py-1 font-monospace" id="pingNetBadge">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card mb-4 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="m-0 fw-bold"><i class="bi bi-activity me-2 text-info"></i>Performance Chart</h5>
+                <span class="badge bg-info bg-opacity-10 text-info">Live PnL</span>
+            </div>
+            <div style="height: 320px; width: 100%;">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <h5 class="mb-4 text-warning fw-bold"><i class="bi bi-lightning-fill me-2"></i>Open Positions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th class="text-center">Side/Lev</th>
+                                    <th class="text-end">Entry Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="glass-card h-100">
+                    <h5 class="mb-4 text-success fw-bold"><i class="bi bi-clock-history me-2"></i>Trade History</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th class="text-center">Profit</th>
+                                    <th class="text-end">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="histBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="logModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content terminal-modal shadow-lg">
+                <div class="modal-header border-secondary bg-dark">
+                    <h5 class="modal-title font-monospace"><i class="bi bi-terminal me-2"></i>System Logs</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-black" id="logContent">
+                    <span class="text-muted">Waiting for logs...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let chartInstance = null;
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-bs-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-bs-theme', next);
+            localStorage.setItem('theme', next);
+            
+            const icon = document.getElementById('themeIcon');
+            icon.className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+
+            updateChartTheme(next);
+        }
+
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-bs-theme', saved);
+            document.getElementById('themeIcon').className = saved === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+        }
+
+        function updateChartTheme(theme) {
+            if(!chartInstance) return;
+            const textColor = theme === 'dark' ? '#94a3b8' : '#475569';
+            const gridColor = theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+            chartInstance.options.scales.x.ticks.color = textColor;
+            chartInstance.options.scales.y.ticks.color = textColor;
+            chartInstance.options.scales.y.grid.color = gridColor;
+            chartInstance.update('none');
+        }
+
+        function renderChart(history) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            const data = [];
+            const labels = [];
+            let sum = 0;
+
+            [...history].reverse().forEach(h => {
+                sum += parseFloat(h.profit_usdt);
+                data.push(sum);
+                labels.push(h.exit_time.split(' ')[1]);
+            });
+
+            if (chartInstance) {
+                chartInstance.data.labels = labels;
+                chartInstance.data.datasets[0].data = data;
+                chartInstance.update('none');
+            } else {
+                const theme = document.documentElement.getAttribute('data-bs-theme');
+                const textColor = theme === 'dark' ? '#94a3b8' : '#475569';
+                const gridColor = theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Net Profit (USDT)',
+                            data: data,
+                            borderColor: '#3b82f6',
+                            backgroundColor: (context) => {
+                                const ctx = context.chart.ctx;
+                                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+                                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+                                return gradient;
+                            },
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: textColor, maxTicksLimit: 8 } },
+                            y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                        },
+                        interaction: { mode: 'index', intersect: false },
+                    }
+                });
+            }
+        }
+
+        async function setSetting(key, val) {
+            try {
+                await fetch('/api/set', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({[key]: val})
+                });
+                update();
+            } catch(e) { console.error(e); }
+        }
+
+        async function update() {
+            try {
+                const res = await fetch('/api/data');
+                const d = await res.json();
+
+                document.getElementById('serverClock').innerText = new Date().toLocaleTimeString('en-US');
+                document.getElementById('exLabel').innerText = d.settings.exchange;
+                
+                if (d.settings.mode === 'SPOT') document.getElementById('spot').checked = true;
+                else document.getElementById('fut').checked = true;
+
+                document.getElementById('bal').innerText = "$ " + d.balance;
+                
+                const pEx = d.pings.exchange;
+                const elEx = document.getElementById('pingExBadge');
+                elEx.innerText = (pEx === 999 ? "Timeout" : pEx + " ms");
+                elEx.className = `badge rounded-pill px-2 py-1 font-monospace ${pEx < 200 ? 'bg-success' : (pEx < 500 ? 'bg-warning' : 'bg-danger')}`;
+                
+                const pNet = d.pings.net;
+                const elNet = document.getElementById('pingNetBadge');
+                elNet.innerText = (pNet === 999 ? "Offline" : pNet + " ms");
+                elNet.className = `badge rounded-pill px-2 py-1 font-monospace ${pNet < 300 ? 'bg-secondary' : 'bg-danger text-white'}`;
+
+                const logHTML = d.logs.map(l => {
+                    let c = 'text-light';
+                    if (l.includes('BUY')) c = 'text-success fw-bold';
+                    else if (l.includes('SELL')) c = 'text-danger fw-bold';
+                    else if (l.includes('Err') || l.includes('⚠️')) c = 'text-warning';
+                    return `<div class="log-line ${c}">${l}</div>`;
+                }).join('');
+                document.getElementById('logContent').innerHTML = logHTML || '<span class="text-muted">No logs available.</span>';
+
+                const posBody = document.getElementById('posBody');
+                if (Object.keys(d.positions).length === 0) {
+                    posBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No active positions</td></tr>`;
+                } else {
+                    posBody.innerHTML = Object.keys(d.positions).map(sym => {
+                        const p = d.positions[sym];
+                        const badgeClass = p.side === 'LONG' ? 'bg-success' : 'bg-danger';
+                        return `
+                            <tr>
+                                <td class="fw-bold text-light">${sym}</td>
+                                <td class="text-center">
+                                    <span class="badge ${badgeClass}">${p.side}</span> 
+                                    <small class="opacity-50 ms-1">${p.leverage}x</small>
+                                </td>
+                                <td class="text-end font-monospace">${p.entry_price}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                const histBody = document.getElementById('histBody');
+                if (d.history.length === 0) {
+                    histBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No trade history</td></tr>`;
+                } else {
+                    histBody.innerHTML = d.history.slice(0, 5).map(h => {
+                        const isWin = h.profit_usdt >= 0;
+                        const sign = isWin ? '+' : '';
+                        return `
+                            <tr>
+                                <td class="fw-bold">${h.symbol}</td>
+                                <td class="text-center ${isWin ? 'text-success' : 'text-danger'} fw-bold">${sign}${h.profit_usdt} $</td>
+                                <td class="text-end small opacity-50">${h.exit_time.split(' ')[1]}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                renderChart(d.history);
+
+            } catch (e) { console.error("Update Error:", e); }
+        }
+
+        initTheme();
+        update();
+        setInterval(update, 2000);
+    </script>
+</body>
+</html>
