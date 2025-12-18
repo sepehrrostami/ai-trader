@@ -25,8 +25,7 @@ Nimbaha is designed for speed and precision, utilizing an **Asynchronous** core 
 
 ## 📸 Dashboard Preview
 
-![Dashboard Screenshot](https://via.placeholder.com/1200x600?text=Dashboard+Screenshot+Placeholder)
-*(Replace this image link with your actual dashboard screenshot)*
+![Dashboard Screenshot](https://raw.githubusercontent.com/sepehrrostami/ai-trader/refs/heads/main/templates/Dashboard.png)
 
 ---
 
@@ -44,71 +43,37 @@ Nimbaha is designed for speed and precision, utilizing an **Asynchronous** core 
 ```bash
 git clone [https://github.com/sepehrrostami/ai-trader.git](https://github.com/sepehrrostami/ai-trader.git)
 cd ai-trader
-
+```
+---
 2. Set Up Virtual Environment
 It is recommended to use a virtual environment to manage dependencies:
-
-Bash
-
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
+---
 3. Install Dependencies
-Bash
-
+```bash
 pip install ccxt pandas pandas_ta scikit-learn joblib numpy flask aiohttp requests
+```
+---
 ⚙️ Configuration
 Open config.py and configure your API keys and trading preferences.
 
 ⚠️ Security Warning: Never commit your config.py file with real API keys to GitHub. Add it to your .gitignore file.
+---
 
-Python
-
-# config.py
-
-# Exchange Keys
-MEXC_API_KEY = 'YOUR_MEXC_API_KEY'
-MEXC_SECRET_KEY = 'YOUR_MEXC_SECRET_KEY'
-
-COINEX_API_KEY = 'YOUR_COINEX_API_KEY'
-COINEX_SECRET_KEY = 'YOUR_COINEX_SECRET_KEY'
-
-# Trading Pairs
-SYMBOLS = [
-    'BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT', 
-    'XRP/USDT', 'ADA/USDT', 'DOGE/USDT', 'AVAX/USDT'
-]
-
-# Strategy Settings
-TIMEFRAME = '5m'        # Scalping timeframe
-MIN_TRADE_AMOUNT = 1.0  # Minimum USDT per trade
-
-# Risk Management
-MAX_LEVERAGE = 20
-STOP_LOSS_PERCENT = 0.015   # 1.5%
-TAKE_PROFIT_PERCENT = 0.025 # 2.5%
-🚀 Usage
-The system consists of three main components that need to run simultaneously (or as background services).
-
-1. Train the AI Model
-Before the first run, train the Random Forest model on historical data:
-
-Bash
-
-python3 train.py
-Output: Generates a brain.pkl file.
-
-2. Run the Trading Engine
+1. Run the Trading Engine
 This is the core logic that connects to exchanges and executes trades:
 
-Bash
-
+```bash
 python3 main.py
-3. Launch the Dashboard
+```
+2. Launch the Dashboard
 Start the web server to monitor your bot:
-
-Bash
-
+```bash
 python3 dashboard.py
+```
 Access the dashboard at: http://YOUR_SERVER_IP:5000
 
 🌐 Production Deployment (SSL & Nginx)
@@ -131,24 +96,25 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-(Repeat this step for dashboard.py naming it web.service).
 
 Enable the services:
 
-Bash
+```bash
 
 sudo systemctl enable bot web
 sudo systemctl start bot web
 2. Configure Nginx Reverse Proxy
 Install Nginx and Certbot:
+```
 
-Bash
-
+```bash
 sudo apt install nginx certbot python3-certbot-nginx
+```
+
 Configure Nginx (/etc/nginx/sites-available/trader):
 
 Nginx
-
+```bash
 server {
     server_name yourdomain.com;
 
@@ -158,26 +124,13 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
+```
 Generate SSL Certificate:
 
-Bash
-
+```bash
 sudo certbot --nginx -d yourdomain.com
-📂 Project Structure
-Plaintext
+```
 
-nimbaha/
-├── ai_engine.py       # Decision logic (AI + Technical scoring)
-├── config.py          # Configuration and API keys
-├── dashboard.py       # Flask web server (Backend)
-├── main.py            # Async trading engine & Wallet Sync
-├── state.py           # Database management (JSON file handling)
-├── strategy.py        # Indicator calculations (RSI, EMA, ADX)
-├── train.py           # Machine Learning training script
-├── templates/
-│   └── index.html     # Modern UI Dashboard (Frontend)
-├── *.json             # Data storage (Positions, History, Settings)
-└── activity.log       # System logs
 ⚠️ Disclaimer
 This software is for educational and research purposes only. Cryptocurrency trading involves significant risk and can result in the loss of your capital. The developer accepts no liability for any financial losses incurred while using this bot. Always test on paper trading or with insignificant amounts before using real capital.
 
