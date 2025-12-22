@@ -3,125 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Trader Pro</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <title>AI Trader Pro | Terminal</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --font-main: 'Inter', sans-serif;
-            --font-mono: 'Roboto Mono', monospace;
-            
-            --bg-anim-1: #0f172a; --bg-anim-2: #1e1b4b; --bg-anim-3: #312e81;
-            
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-            
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-main: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(229, 231, 235, 1);
+            --accent: #3b82f6;
+            --glow-color: rgba(59, 130, 246, 0.3);
+            --bg-blob: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 60%);
         }
 
-        [data-bs-theme="light"] {
-            --bg-anim-1: #f8fafc; --bg-anim-2: #e0f2fe; --bg-anim-3: #dbeafe;
-            --glass: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+        [data-bs-theme="dark"] {
+            --bg-main: #050505;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --card-bg: rgba(15, 15, 15, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent: #06b6d4;
+            --glow-color: rgba(6, 182, 212, 0.25);
+            --bg-blob: 
+                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
         }
 
         body {
-            font-family: var(--font-main);
-            color: var(--text-main);
-            background: linear-gradient(-45deg, var(--bg-anim-1), var(--bg-anim-2), var(--bg-anim-3));
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            background-image: var(--bg-blob);
+            background-attachment: fixed;
+            color: var(--text-primary);
             min-height: 100vh;
+            transition: background 0.5s ease, color 0.3s ease;
+            overflow-x: hidden;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        
+        .animate-entry {
+            opacity: 0;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
 
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
+        .pro-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
             padding: 1.5rem;
-            box-shadow: var(--glass-shadow);
-            transition: transform 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .glass-card:hover {
-            transform: translateY(-5px);
+        .pro-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 40px -10px var(--glow-color);
         }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            font-family: var(--font-mono);
-        }
-
-        .log-line {
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            border-bottom: 1px solid var(--glass-border);
-            padding: 4px 0;
-            white-space: pre-wrap;
-        }
-
-        .terminal-modal {
-            background: #0d1117;
-            color: #58a6ff;
-            font-family: var(--font-mono);
-            border: 1px solid #30363d;
-        }
-
-        .btn-theme-toggle {
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
+        
+        .pro-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
             transition: 0.3s;
         }
-        .btn-theme-toggle:hover { background: rgba(255,255,255,0.2); }
+        .pro-card:hover::before { opacity: 1; }
 
-        .table { --bs-table-bg: transparent; --bs-table-color: var(--text-main); }
-        th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; color: var(--text-muted); }
-        td { vertical-align: middle; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-pro {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-theme {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            display: grid; place-items: center;
+            transition: 0.3s;
+        }
+        .btn-theme:hover {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        .table { --bs-table-bg: transparent; --bs-table-color: var(--text-primary); }
+        th { 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1.2px; 
+            color: var(--text-secondary); 
+            font-weight: 600; 
+            border-bottom: 1px solid var(--card-border) !important;
+        }
+        td { border-bottom: 1px solid var(--card-border); padding: 1rem 0.5rem; }
+        
+        .terminal-modal {
+            background: #09090b;
+            border: 1px solid #27272a;
+        }
+        .log-line { font-size: 0.8rem; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        
     </style>
 </head>
 <body class="py-5">
 
     <div class="container">
         
-        <div class="d-flex justify-content-between align-items-center mb-5 glass-card p-3">
+        <div class="d-flex justify-content-between align-items-center mb-5 pro-card animate-entry">
             <div class="d-flex align-items-center gap-3">
-                <div class="bg-primary bg-opacity-25 p-2 rounded-3 text-primary">
-                    <i class="bi bi-cpu-fill fs-4"></i>
+                <div class="position-relative">
+                    <i class="bi bi-cpu fs-3" style="color: var(--accent);"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-dark rounded-circle"></span>
                 </div>
                 <div>
-                    <h4 class="m-0 fw-bold">AI Trader Pro</h4>
-                    <div class="small text-muted font-monospace" id="serverClock">Connecting...</div>
+                    <h5 class="m-0 fw-bold tracking-tight">AI TRADER <span style="color: var(--accent);">PRO</span></h5>
+                    <div class="small text-muted font-mono" id="serverClock">SYNCING...</div>
                 </div>
             </div>
             
             <div class="d-flex gap-3">
-                <button class="btn btn-outline-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#logModal">
-                    <i class="bi bi-terminal-fill"></i> <span class="d-none d-md-inline">Terminal</span>
+                <button class="btn btn-outline-secondary d-flex align-items-center gap-2 border-secondary border-opacity-25 text-body" data-bs-toggle="modal" data-bs-target="#logModal">
+                    <i class="bi bi-code-square"></i> <span class="d-none d-md-inline small fw-bold">LOGS</span>
                 </button>
-                <button class="btn-theme-toggle" onclick="toggleTheme()">
+                <button class="btn-theme" onclick="toggleTheme()">
                     <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
                 </button>
             </div>
@@ -130,99 +175,102 @@
         <div class="row g-4 mb-4">
             
             <div class="col-md-4">
-                <div class="glass-card h-100 d-flex flex-column justify-content-center text-center">
+                <div class="pro-card h-100 d-flex flex-column justify-content-center animate-entry delay-1">
                     <div class="dropdown mb-3 w-100">
-                        <button class="btn btn-lg btn-outline-light w-100 dropdown-toggle d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown">
-                            <span class="small opacity-75">Exchange:</span>
-                            <span id="exLabel" class="fw-bold">...</span>
+                        <button class="btn btn-lg w-100 d-flex justify-content-between align-items-center border border-secondary border-opacity-25 text-body" style="background: rgba(255,255,255,0.02);" type="button" data-bs-toggle="dropdown">
+                            <span class="small text-muted fw-bold">EXCHANGE</span>
+                            <span id="exLabel" class="fw-bold font-mono">...</span>
                         </button>
-                        <ul class="dropdown-menu w-100">
+                        <ul class="dropdown-menu w-100 dropdown-menu-dark shadow-lg border-secondary border-opacity-25">
                             <li><a class="dropdown-item" href="#" onclick="setSetting('exchange','MEXC')">MEXC Global</a></li>
                             <li><a class="dropdown-item" href="#" onclick="setSetting('exchange','COINEX')">CoinEx</a></li>
                         </ul>
                     </div>
                     
-                    <div class="btn-group w-100 shadow-sm" role="group">
+                    <div class="btn-group w-100" role="group">
                         <input type="radio" class="btn-check" name="mode" id="spot" onclick="setSetting('mode','SPOT')">
-                        <label class="btn btn-outline-success fw-bold" for="spot">SPOT</label>
+                        <label class="btn btn-outline-success fw-bold py-2 small" for="spot">SPOT</label>
 
                         <input type="radio" class="btn-check" name="mode" id="fut" onclick="setSetting('mode','FUTURE')">
-                        <label class="btn btn-outline-danger fw-bold" for="fut">FUTURES</label>
+                        <label class="btn btn-outline-danger fw-bold py-2 small" for="fut">FUTURES</label>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="glass-card h-100 d-flex flex-column justify-content-center">
-                    <span class="text-muted small text-uppercase fw-bold mb-1">Total Balance (USDT)</span>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-value text-primary" id="bal">...</div>
-                        <i class="bi bi-wallet2 fs-2 opacity-25"></i>
-                    </div>
+                <div class="pro-card h-100 d-flex flex-column justify-content-center animate-entry delay-1">
+                    <span class="text-secondary small fw-bold mb-1 d-flex justify-content-between">
+                        TOTAL EQUITY
+                        <i class="bi bi-wallet2"></i>
+                    </span>
+                    <div class="stat-value font-mono" id="bal">---</div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="glass-card h-100 d-flex flex-column justify-content-center">
-                    <span class="text-muted small text-uppercase fw-bold mb-2">Network Latency</span>
+                <div class="pro-card h-100 d-flex flex-column justify-content-center animate-entry delay-1">
+                    <span class="text-secondary small fw-bold mb-3">SYSTEM LATENCY</span>
                     
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small opacity-75"><i class="bi bi-hdd-network me-2"></i>Exchange API:</span>
-                        <span class="badge rounded-pill px-2 py-1 font-monospace" id="pingExBadge">...</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
+                        <span class="small opacity-75"><i class="bi bi-hdd-network me-2 text-primary"></i>API Connection</span>
+                        <span class="badge rounded-pill badge-pro font-mono" id="pingExBadge">...</span>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="small opacity-75"><i class="bi bi-globe me-2"></i>Internet:</span>
-                        <span class="badge rounded-pill px-2 py-1 font-monospace" id="pingNetBadge">...</span>
+                        <span class="small opacity-75"><i class="bi bi-globe me-2 text-info"></i>Uplink</span>
+                        <span class="badge rounded-pill badge-pro font-mono" id="pingNetBadge">...</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="glass-card mb-4 p-4">
+        <div class="pro-card mb-4 animate-entry delay-2">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="m-0 fw-bold"><i class="bi bi-activity me-2 text-info"></i>Performance Chart</h5>
-                <span class="badge bg-info bg-opacity-10 text-info">Live PnL</span>
+                <div>
+                    <h6 class="m-0 fw-bold"><i class="bi bi-graph-up-arrow me-2" style="color: var(--accent);"></i>PERFORMANCE</h6>
+                    <span class="small text-muted">Real-time PnL Tracking</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3">Live</span>
+                </div>
             </div>
-            <div style="height: 320px; width: 100%;">
+            <div style="height: 350px; width: 100%;">
                 <canvas id="chart"></canvas>
             </div>
         </div>
 
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="glass-card h-100">
-                    <h5 class="mb-4 text-warning fw-bold"><i class="bi bi-lightning-fill me-2"></i>Open Positions</h5>
+                <div class="pro-card h-100 animate-entry delay-3">
+                    <h6 class="mb-4 fw-bold text-warning"><i class="bi bi-layers-fill me-2"></i>ACTIVE POSITIONS</h6>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                        <table class="table align-middle">
                             <thead>
                                 <tr>
-                                    <th>Symbol</th>
-                                    <th class="text-center">Side/Lev</th>
-                                    <th class="text-end">Entry Price</th>
+                                    <th>Asset</th>
+                                    <th class="text-center">Side / Lev</th>
+                                    <th class="text-end">Entry</th>
                                 </tr>
                             </thead>
-                            <tbody id="posBody">
-                                </tbody>
+                            <tbody id="posBody" class="font-mono small"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="glass-card h-100">
-                    <h5 class="mb-4 text-success fw-bold"><i class="bi bi-clock-history me-2"></i>Trade History</h5>
+                <div class="pro-card h-100 animate-entry delay-3">
+                    <h6 class="mb-4 fw-bold text-success"><i class="bi bi-clock-history me-2"></i>TRADE HISTORY</h6>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle">
+                        <table class="table align-middle">
                             <thead>
                                 <tr>
-                                    <th>Symbol</th>
-                                    <th class="text-center">Profit</th>
+                                    <th>Asset</th>
+                                    <th class="text-center">PnL</th>
                                     <th class="text-end">Time</th>
                                 </tr>
                             </thead>
-                            <tbody id="histBody">
-                                </tbody>
+                            <tbody id="histBody" class="font-mono small"></tbody>
                         </table>
                     </div>
                 </div>
@@ -231,53 +279,65 @@
 
     </div>
 
-    <div class="modal fade" id="logModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="logModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content terminal-modal shadow-lg">
-                <div class="modal-header border-secondary bg-dark">
-                    <h5 class="modal-title font-monospace"><i class="bi bi-terminal me-2"></i>System Logs</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header border-bottom border-secondary border-opacity-25 py-2">
+                    <h6 class="modal-title font-mono small text-muted"><i class="bi bi-terminal me-2"></i>SYSTEM_LOGS</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body bg-black" id="logContent">
-                    <span class="text-muted">Waiting for logs...</span>
+                <div class="modal-body font-mono" id="logContent" style="background: #000; min-height: 400px;">
+                    <span class="text-muted">Initializing stream...</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
         let chartInstance = null;
 
         function toggleTheme() {
             const html = document.documentElement;
-            const current = html.getAttribute('data-bs-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            
+            const next = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-bs-theme', next);
             localStorage.setItem('theme', next);
-            
-            const icon = document.getElementById('themeIcon');
-            icon.className = next === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
-
+            updateIcons(next);
             updateChartTheme(next);
+        }
+
+        function updateIcons(theme) {
+            const icon = document.getElementById('themeIcon');
+            icon.className = theme === 'light' ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars-fill text-white';
         }
 
         function initTheme() {
             const saved = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-bs-theme', saved);
-            document.getElementById('themeIcon').className = saved === 'light' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+            updateIcons(saved);
         }
 
         function updateChartTheme(theme) {
             if(!chartInstance) return;
-            const textColor = theme === 'dark' ? '#94a3b8' : '#475569';
-            const gridColor = theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+            const isDark = theme === 'dark';
+            const color = isDark ? '#64748b' : '#94a3b8';
+            const grid = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+            
+            const accent = isDark ? '#06b6d4' : '#3b82f6'; 
 
-            chartInstance.options.scales.x.ticks.color = textColor;
-            chartInstance.options.scales.y.ticks.color = textColor;
-            chartInstance.options.scales.y.grid.color = gridColor;
+            chartInstance.options.scales.x.ticks.color = color;
+            chartInstance.options.scales.y.ticks.color = color;
+            chartInstance.options.scales.y.grid.color = grid;
+            
+            chartInstance.data.datasets[0].borderColor = accent;
+            chartInstance.data.datasets[0].backgroundColor = (context) => {
+                const ctx = context.chart.ctx;
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, isDark ? 'rgba(6, 182, 212, 0.3)' : 'rgba(59, 130, 246, 0.3)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                return gradient;
+            };
+
             chartInstance.update('none');
         }
 
@@ -298,55 +358,45 @@
                 chartInstance.data.datasets[0].data = data;
                 chartInstance.update('none');
             } else {
-                const theme = document.documentElement.getAttribute('data-bs-theme');
-                const textColor = theme === 'dark' ? '#94a3b8' : '#475569';
-                const gridColor = theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-
                 chartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Net Profit (USDT)',
+                            label: 'Net PnL ($)',
                             data: data,
-                            borderColor: '#3b82f6',
-                            backgroundColor: (context) => {
-                                const ctx = context.chart.ctx;
-                                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-                                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-                                return gradient;
-                            },
+                            borderColor: '#06b6d4',
                             borderWidth: 2,
                             fill: true,
                             tension: 0.4,
                             pointRadius: 0,
-                            pointHoverRadius: 6
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#fff'
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
+                        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
                         scales: {
-                            x: { grid: { display: false }, ticks: { color: textColor, maxTicksLimit: 8 } },
-                            y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                            x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+                            y: { border: { display: false } }
                         },
-                        interaction: { mode: 'index', intersect: false },
+                        interaction: { mode: 'nearest', axis: 'x', intersect: false }
                     }
                 });
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                updateChartTheme(currentTheme);
             }
         }
 
         async function setSetting(key, val) {
             try {
                 await fetch('/api/set', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({[key]: val})
+                    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({[key]: val})
                 });
                 update();
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
 
         async function update() {
@@ -354,65 +404,60 @@
                 const res = await fetch('/api/data');
                 const d = await res.json();
 
-                document.getElementById('serverClock').innerText = new Date().toLocaleTimeString('en-US');
+                document.getElementById('serverClock').innerText = new Date().toLocaleTimeString('en-US', {hour12: false});
                 document.getElementById('exLabel').innerText = d.settings.exchange;
                 
                 if (d.settings.mode === 'SPOT') document.getElementById('spot').checked = true;
                 else document.getElementById('fut').checked = true;
 
                 document.getElementById('bal').innerText = "$ " + d.balance;
-                
-                const pEx = d.pings.exchange;
-                const elEx = document.getElementById('pingExBadge');
-                elEx.innerText = (pEx === 999 ? "Timeout" : pEx + " ms");
-                elEx.className = `badge rounded-pill px-2 py-1 font-monospace ${pEx < 200 ? 'bg-success' : (pEx < 500 ? 'bg-warning' : 'bg-danger')}`;
-                
-                const pNet = d.pings.net;
-                const elNet = document.getElementById('pingNetBadge');
-                elNet.innerText = (pNet === 999 ? "Offline" : pNet + " ms");
-                elNet.className = `badge rounded-pill px-2 py-1 font-monospace ${pNet < 300 ? 'bg-secondary' : 'bg-danger text-white'}`;
 
-                const logHTML = d.logs.map(l => {
-                    let c = 'text-light';
-                    if (l.includes('BUY')) c = 'text-success fw-bold';
-                    else if (l.includes('SELL')) c = 'text-danger fw-bold';
-                    else if (l.includes('Err') || l.includes('⚠️')) c = 'text-warning';
-                    return `<div class="log-line ${c}">${l}</div>`;
-                }).join('');
-                document.getElementById('logContent').innerHTML = logHTML || '<span class="text-muted">No logs available.</span>';
+                const setPing = (id, val) => {
+                    const el = document.getElementById(id);
+                    el.innerText = (val === 999 ? "TIMEOUT" : val + " ms");
+                    if(val < 200) el.style.color = "var(--bs-success)";
+                    else if(val < 500) el.style.color = "var(--bs-warning)";
+                    else el.style.color = "var(--bs-danger)";
+                };
+                setPing('pingExBadge', d.pings.exchange);
+                setPing('pingNetBadge', d.pings.net);
+
+                document.getElementById('logContent').innerHTML = d.logs.map(l => {
+                    let c = '#9ca3af';
+                    if (l.includes('BUY')) c = '#4ade80';
+                    else if (l.includes('SELL')) c = '#f87171';
+                    else if (l.includes('⚠️') || l.includes('Err')) c = '#facc15';
+                    return `<div class="log-line" style="color:${c}">${l}</div>`;
+                }).join('') || '<span class="text-muted small">System standby...</span>';
 
                 const posBody = document.getElementById('posBody');
-                if (Object.keys(d.positions).length === 0) {
-                    posBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No active positions</td></tr>`;
+                if (!Object.keys(d.positions).length) {
+                    posBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4 opacity-50">NO ACTIVE POSITIONS</td></tr>`;
                 } else {
                     posBody.innerHTML = Object.keys(d.positions).map(sym => {
                         const p = d.positions[sym];
-                        const badgeClass = p.side === 'LONG' ? 'bg-success' : 'bg-danger';
+                        const color = p.side === 'LONG' ? 'text-success' : 'text-danger';
                         return `
                             <tr>
-                                <td class="fw-bold text-light">${sym}</td>
-                                <td class="text-center">
-                                    <span class="badge ${badgeClass}">${p.side}</span> 
-                                    <small class="opacity-50 ms-1">${p.leverage}x</small>
-                                </td>
-                                <td class="text-end font-monospace">${p.entry_price}</td>
+                                <td class="fw-bold">${sym}</td>
+                                <td class="text-center"><span class="${color} fw-bold">${p.side}</span> <span class="text-muted mx-1">/</span> ${p.leverage}x</td>
+                                <td class="text-end text-muted">${p.entry_price}</td>
                             </tr>
                         `;
                     }).join('');
                 }
 
                 const histBody = document.getElementById('histBody');
-                if (d.history.length === 0) {
-                    histBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No trade history</td></tr>`;
+                if (!d.history.length) {
+                    histBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4 opacity-50">NO HISTORY DATA</td></tr>`;
                 } else {
                     histBody.innerHTML = d.history.slice(0, 5).map(h => {
                         const isWin = h.profit_usdt >= 0;
-                        const sign = isWin ? '+' : '';
                         return `
                             <tr>
-                                <td class="fw-bold">${h.symbol}</td>
-                                <td class="text-center ${isWin ? 'text-success' : 'text-danger'} fw-bold">${sign}${h.profit_usdt} $</td>
-                                <td class="text-end small opacity-50">${h.exit_time.split(' ')[1]}</td>
+                                <td class="fw-bold text-muted">${h.symbol}</td>
+                                <td class="text-center ${isWin ? 'text-success' : 'text-danger'} fw-bold">${isWin?'+':''}${h.profit_usdt} $</td>
+                                <td class="text-end text-muted opacity-50">${h.exit_time.split(' ')[1]}</td>
                             </tr>
                         `;
                     }).join('');
@@ -420,7 +465,7 @@
 
                 renderChart(d.history);
 
-            } catch (e) { console.error("Update Error:", e); }
+            } catch (e) { console.error(e); }
         }
 
         initTheme();
