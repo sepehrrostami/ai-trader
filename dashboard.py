@@ -6,7 +6,7 @@ app = Flask(__name__)
 PING_TARGETS = {
     'MEXC': 'https://api.mexc.com/api/v3/ping',
     'COINEX': 'https://api.coinex.com/v1/common/maintain',
-    'GOOGLE': 'https://dash.sakuranet.company'
+    'GOOGLE': 'https://google.com'
 }
 
 exchanges = {
