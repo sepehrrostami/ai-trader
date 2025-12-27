@@ -8,8 +8,7 @@ def load(k):
         return {'mode':'SPOT', 'exchange':'MEXC'} if k=='set' else ({} if k=='pos' else [])
     try:
         with open(FILES[k], 'r') as f: return json.load(f)
-    except: 
-        return {'mode':'SPOT', 'exchange':'MEXC'} if k=='set' else ({} if k=='pos' else [])
+    except: return {'mode':'SPOT', 'exchange':'MEXC'} if k=='set' else ({} if k=='pos' else [])
 
 def save(k, d):
     try:
@@ -19,20 +18,12 @@ def save(k, d):
 def get_positions(): return load('pos')
 def get_history(): return load('hist')
 def get_settings(): return load('set')
-
-def get_position(sym):
-    return get_positions().get(sym, None)
+def get_position(sym): return get_positions().get(sym, None)
 
 def set_setting(key, val):
     s = get_settings()
     s[key] = val
     save('set', s)
-
-def set_exchange(name):
-    set_setting('exchange', name)
-
-def set_mode(mode):
-    set_setting('mode', mode)
 
 def update_position(sym, data):
     p = get_positions()
@@ -57,9 +48,13 @@ def close_position(sym, price, reason, pnl=0):
             except: pnl = 0
 
         rec = {
-            'symbol': sym, 
+            'symbol': sym,
+            'side': pos.get('side', 'LONG'),
+            'leverage': pos.get('leverage', 1),
+            'amount_margin': pos.get('amount_margin', 0),
+            'entry_price': pos.get('entry_price', 0),
+            'exit_price': price,
             'profit_usdt': round(pnl, 4),
-            'exit_price': price, 
             'reason': reason,
             'exit_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'exchange': pos.get('exchange', 'MEXC')
@@ -67,7 +62,7 @@ def close_position(sym, price, reason, pnl=0):
         
         h = get_history()
         h.insert(0, rec)
-        save('hist', h[:300])
+        save('hist', h[:500])
         
         del p[sym]
         save('pos', p)

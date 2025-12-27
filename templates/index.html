@@ -3,236 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Trader Pro | Terminal</title>
+    <title>AI TRADER PRO | Terminal</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/dist/font-face.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --bg-main: #f3f4f6;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --card-border: rgba(229, 231, 235, 1);
-            --accent: #3b82f6;
-            --glow-color: rgba(59, 130, 246, 0.3);
-            --bg-blob: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 60%);
-        }
-
-        [data-bs-theme="dark"] {
-            --bg-main: #050505;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --card-bg: rgba(15, 15, 15, 0.6);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent: #06b6d4;
-            --glow-color: rgba(6, 182, 212, 0.25);
-            --bg-blob: 
-                radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+            /* --- COLOR PALETTE (CYBERPUNK FINANCE) --- */
+            --bg-deep: #050505;
+            --bg-card: rgba(20, 20, 25, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            
+            --primary-accent: #3b82f6; /* Blue */
+            --success-neon: #0ecb81;   /* Binance Green */
+            --danger-neon: #f6465d;    /* Binance Red */
+            --warning-neon: #f59e0b;
+            
+            --font-ui: 'Inter', 'Vazirmatn', sans-serif;
+            --font-num: 'JetBrains Mono', monospace;
+            
+            --glow-blue: 0 0 15px rgba(59, 130, 246, 0.3);
+            --glow-green: 0 0 15px rgba(14, 203, 129, 0.2);
+            --glow-red: 0 0 15px rgba(246, 70, 93, 0.2);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-main);
-            background-image: var(--bg-blob);
-            background-attachment: fixed;
-            color: var(--text-primary);
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.3s ease;
+            background-color: var(--bg-deep);
+            font-family: var(--font-ui);
+            color: #e2e8f0;
             overflow-x: hidden;
+            /* Animated Background Mesh */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(14, 203, 129, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
         }
 
-        @keyframes fadeInUp {
+        /* --- ANIMATIONS --- */
+        @keyframes slideUpFade {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        .animate-entry {
+        .anim-entry {
             opacity: 0;
-            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: slideUpFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
 
-        .pro-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
+        /* --- GLASS CARDS --- */
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 1.5rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-
-        .pro-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
-            box-shadow: 0 10px 40px -10px var(--glow-color);
-        }
         
-        .pro-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0;
-            transition: 0.3s;
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
         }
-        .pro-card:hover::before { opacity: 1; }
 
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        /* Top Accent Line */
+        .glass-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            opacity: 0.5;
+        }
+
+        /* --- TYPOGRAPHY & COMPONENTS --- */
+        .mono-num { font-family: var(--font-num); letter-spacing: -0.5px; }
         
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -1.5px;
-            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 600; }
+        .stat-value { font-size: 2.25rem; font-weight: 700; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
+        /* Custom Badge */
         .badge-pro {
             background: rgba(255,255,255,0.05);
-            border: 1px solid var(--card-border);
-            color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1;
+            padding: 0.35em 0.65em;
             font-weight: 500;
-            letter-spacing: 0.5px;
         }
-
-        .btn-theme {
-            width: 44px; height: 44px;
-            border-radius: 12px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-primary);
-            display: grid; place-items: center;
+        
+        /* Buttons */
+        .btn-glass {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: #fff;
             transition: 0.3s;
         }
-        .btn-theme:hover {
-            background: var(--accent);
-            color: #000;
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--glow-color);
-        }
+        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
 
+        /* --- TABLES --- */
+        .table { --bs-table-bg: transparent; --bs-table-color: #cbd5e1; }
+        .table th {
+            font-family: var(--font-ui);
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+            color: #64748b; font-weight: 700; border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+        .table td { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 1rem 0.5rem; vertical-align: middle; }
+        .table tr:hover td { background: rgba(255,255,255,0.02); color: #fff; }
+
+        /* Status Colors */
+        .text-win { color: var(--success-neon) !important; text-shadow: 0 0 10px rgba(14, 203, 129, 0.2); }
+        .text-loss { color: var(--danger-neon) !important; text-shadow: 0 0 10px rgba(246, 70, 93, 0.2); }
+        .bg-win-subtle { background: rgba(14, 203, 129, 0.1); color: var(--success-neon); border: 1px solid rgba(14, 203, 129, 0.2); }
+        .bg-loss-subtle { background: rgba(246, 70, 93, 0.1); color: var(--danger-neon); border: 1px solid rgba(246, 70, 93, 0.2); }
+
+        /* --- SCROLLBAR --- */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        .table { --bs-table-bg: transparent; --bs-table-color: var(--text-primary); }
-        th { 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            letter-spacing: 1.2px; 
-            color: var(--text-secondary); 
-            font-weight: 600; 
-            border-bottom: 1px solid var(--card-border) !important;
-        }
-        td { border-bottom: 1px solid var(--card-border); padding: 1rem 0.5rem; }
-        
-        .terminal-modal {
-            background: #09090b;
-            border: 1px solid #27272a;
-        }
-        .log-line { font-size: 0.8rem; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        
+        /* --- MODAL --- */
+        .modal-content { background: #0f0f11; border: 1px solid #333; }
+        .modal-header { border-bottom: 1px solid #333; }
     </style>
 </head>
-<body class="py-5">
+<body class="py-4 py-md-5">
 
     <div class="container">
         
-        <div class="d-flex justify-content-between align-items-center mb-5 pro-card animate-entry">
+        <div class="d-flex justify-content-between align-items-center mb-5 glass-panel anim-entry">
             <div class="d-flex align-items-center gap-3">
                 <div class="position-relative">
-                    <i class="bi bi-cpu fs-3" style="color: var(--accent);"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-dark rounded-circle"></span>
+                    <div class="spinner-grow text-primary opacity-50" style="width: 2.5rem; height: 2.5rem;" role="status"></div>
+                    <i class="bi bi-cpu-fill position-absolute top-50 start-50 translate-middle text-white fs-5"></i>
                 </div>
                 <div>
-                    <h5 class="m-0 fw-bold tracking-tight">AI TRADER <span style="color: var(--accent);">PRO</span></h5>
-                    <div class="small text-muted font-mono" id="serverClock">SYNCING...</div>
+                    <h4 class="m-0 fw-bold tracking-tight text-white">AI TRADER <span class="text-primary">PRO</span></h4>
+                    <div class="d-flex align-items-center gap-2 small text-muted">
+                        <span class="mono-num" id="serverClock">--:--:--</span>
+                        <span class="badge bg-success rounded-circle p-1" style="width: 8px; height: 8px;"></span>
+                        <span>ONLINE</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="d-flex gap-3">
-                <button class="btn btn-outline-secondary d-flex align-items-center gap-2 border-secondary border-opacity-25 text-body" data-bs-toggle="modal" data-bs-target="#logModal">
-                    <i class="bi bi-code-square"></i> <span class="d-none d-md-inline small fw-bold">LOGS</span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-glass d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#logModal">
+                    <i class="bi bi-terminal"></i>
+                    <span class="d-none d-md-inline small">SYSTEM LOGS</span>
                 </button>
-                <button class="btn-theme" onclick="toggleTheme()">
-                    <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+                <button class="btn btn-glass" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i>
                 </button>
             </div>
         </div>
 
         <div class="row g-4 mb-4">
             
-            <div class="col-md-4">
-                <div class="pro-card h-100 d-flex flex-column justify-content-center animate-entry delay-1">
-                    <div class="dropdown mb-3 w-100">
-                        <button class="btn btn-lg w-100 d-flex justify-content-between align-items-center border border-secondary border-opacity-25 text-body" style="background: rgba(255,255,255,0.02);" type="button" data-bs-toggle="dropdown">
-                            <span class="small text-muted fw-bold">EXCHANGE</span>
-                            <span id="exLabel" class="fw-bold font-mono">...</span>
+            <div class="col-lg-4">
+                <div class="glass-panel h-100 d-flex flex-column justify-content-center anim-entry delay-100">
+                    <div class="stat-label mb-3"><i class="bi bi-sliders me-1"></i> CONFIGURATION</div>
+                    
+                    <div class="dropdown w-100 mb-3">
+                        <button class="btn btn-glass w-100 d-flex justify-content-between align-items-center py-2" type="button" data-bs-toggle="dropdown">
+                            <span class="small text-muted">EXCHANGE</span>
+                            <span id="exLabel" class="fw-bold text-white mono-num">...</span>
+                            <i class="bi bi-chevron-down small"></i>
                         </button>
-                        <ul class="dropdown-menu w-100 dropdown-menu-dark shadow-lg border-secondary border-opacity-25">
-                            <li><a class="dropdown-item" href="#" onclick="setSetting('exchange','MEXC')">MEXC Global</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="setSetting('exchange','COINEX')">CoinEx</a></li>
+                        <ul class="dropdown-menu dropdown-menu-dark w-100 shadow-lg border-secondary">
+                            <li><a class="dropdown-item py-2" href="#" onclick="setSetting('exchange','MEXC')">MEXC GLOBAL</a></li>
+                            <li><a class="dropdown-item py-2" href="#" onclick="setSetting('exchange','COINEX')">COINEX</a></li>
                         </ul>
                     </div>
-                    
-                    <div class="btn-group w-100" role="group">
+
+                    <div class="bg-dark rounded-3 p-1 d-flex border border-secondary border-opacity-25">
                         <input type="radio" class="btn-check" name="mode" id="spot" onclick="setSetting('mode','SPOT')">
-                        <label class="btn btn-outline-success fw-bold py-2 small" for="spot">SPOT</label>
+                        <label class="btn btn-sm text-white w-50 rounded-2" for="spot" id="lblSpot">SPOT</label>
 
                         <input type="radio" class="btn-check" name="mode" id="fut" onclick="setSetting('mode','FUTURE')">
-                        <label class="btn btn-outline-danger fw-bold py-2 small" for="fut">FUTURES</label>
+                        <label class="btn btn-sm text-white w-50 rounded-2" for="fut" id="lblFut">FUTURES</label>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="pro-card h-100 d-flex flex-column justify-content-center animate-entry delay-1">
-                    <span class="text-secondary small fw-bold mb-1 d-flex justify-content-between">
-                        TOTAL EQUITY
-                        <i class="bi bi-wallet2"></i>
-                    </span>
-                    <div class="stat-value font-mono" id="bal">---</div>
+            <div class="col-lg-4">
+                <div class="glass-panel h-100 d-flex flex-column justify-content-center anim-entry delay-100">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="stat-label">TOTAL EQUITY (USDT)</span>
+                        <i class="bi bi-wallet2 text-primary fs-5 opacity-50"></i>
+                    </div>
+                    <div class="stat-value mono-num mt-2" id="bal">---</div>
+                    <div class="small text-muted mt-2">
+                        Available Margin
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="pro-card h-100 d-flex flex-column justify-content-center animate-entry delay-1">
-                    <span class="text-secondary small fw-bold mb-3">SYSTEM LATENCY</span>
+            <div class="col-lg-4">
+                <div class="glass-panel h-100 d-flex flex-column justify-content-center anim-entry delay-100">
+                    <div class="stat-label mb-3"><i class="bi bi-activity me-1"></i> NETWORK HEALTH</div>
                     
-                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
-                        <span class="small opacity-75"><i class="bi bi-hdd-network me-2 text-primary"></i>API Connection</span>
-                        <span class="badge rounded-pill badge-pro font-mono" id="pingExBadge">...</span>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small">Exchange API</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-pro rounded-pill mono-num small" id="pingExBadge">-- ms</span>
+                            <div class="rounded-circle bg-success" style="width: 6px; height: 6px;" id="pingExDot"></div>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="small opacity-75"><i class="bi bi-globe me-2 text-info"></i>Uplink</span>
-                        <span class="badge rounded-pill badge-pro font-mono" id="pingNetBadge">...</span>
+                        <span class="text-muted small">Internet Uplink</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-pro rounded-pill mono-num small" id="pingNetBadge">-- ms</span>
+                            <div class="rounded-circle bg-primary" style="width: 6px; height: 6px;" id="pingNetDot"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="pro-card mb-4 animate-entry delay-2">
+        <div class="glass-panel mb-4 p-4 anim-entry delay-200">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h6 class="m-0 fw-bold"><i class="bi bi-graph-up-arrow me-2" style="color: var(--accent);"></i>PERFORMANCE</h6>
-                    <span class="small text-muted">Real-time PnL Tracking</span>
+                    <h6 class="m-0 fw-bold text-white"><i class="bi bi-graph-up text-primary me-2"></i>PERFORMANCE ANALYTICS</h6>
                 </div>
-                <div class="d-flex gap-2">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3">Live</span>
-                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3">Live PnL</span>
             </div>
             <div style="height: 350px; width: 100%;">
                 <canvas id="chart"></canvas>
@@ -240,37 +245,47 @@
         </div>
 
         <div class="row g-4">
-            <div class="col-md-6">
-                <div class="pro-card h-100 animate-entry delay-3">
-                    <h6 class="mb-4 fw-bold text-warning"><i class="bi bi-layers-fill me-2"></i>ACTIVE POSITIONS</h6>
+            
+            <div class="col-xl-6">
+                <div class="glass-panel h-100 anim-entry delay-300">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="fw-bold text-warning m-0 text-shadow"><i class="bi bi-lightning-charge-fill me-2"></i>ACTIVE POSITIONS</h6>
+                    </div>
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <thead>
                                 <tr>
                                     <th>Asset</th>
-                                    <th class="text-center">Side / Lev</th>
+                                    <th>Side/Lev</th>
+                                    <th class="text-end">Margin</th>
                                     <th class="text-end">Entry</th>
+                                    <th class="text-end">Time</th>
                                 </tr>
                             </thead>
-                            <tbody id="posBody" class="font-mono small"></tbody>
+                            <tbody id="posBody" class="mono-num small"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="pro-card h-100 animate-entry delay-3">
-                    <h6 class="mb-4 fw-bold text-success"><i class="bi bi-clock-history me-2"></i>TRADE HISTORY</h6>
+            <div class="col-xl-6">
+                <div class="glass-panel h-100 anim-entry delay-300">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="fw-bold text-success m-0 text-shadow"><i class="bi bi-clock-history me-2"></i>TRADE HISTORY</h6>
+                    </div>
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <thead>
                                 <tr>
-                                    <th>Asset</th>
-                                    <th class="text-center">PnL</th>
-                                    <th class="text-end">Time</th>
+                                    <th>Pair</th>
+                                    <th>Side</th>
+                                    <th class="text-end">PnL ($)</th>
+                                    <th class="text-end">ROI %</th>
+                                    <th class="text-end">Reason</th>
+                                    <th class="text-end">Price In/Out</th>
                                 </tr>
                             </thead>
-                            <tbody id="histBody" class="font-mono small"></tbody>
+                            <tbody id="histBody" class="mono-num small"></tbody>
                         </table>
                     </div>
                 </div>
@@ -280,14 +295,16 @@
     </div>
 
     <div class="modal fade" id="logModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content terminal-modal shadow-lg">
-                <div class="modal-header border-bottom border-secondary border-opacity-25 py-2">
-                    <h6 class="modal-title font-mono small text-muted"><i class="bi bi-terminal me-2"></i>SYSTEM_LOGS</h6>
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header py-2 bg-dark">
+                    <h6 class="modal-title mono-num text-muted small"><i class="bi bi-terminal me-2"></i>ROOT@AI-TRADER:~# LOGS</h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body font-mono" id="logContent" style="background: #000; min-height: 400px;">
-                    <span class="text-muted">Initializing stream...</span>
+                <div class="modal-body bg-black p-0">
+                    <div id="logContent" class="mono-num p-3 small" style="min-height: 400px; color: #a3a3a3; line-height: 1.6;">
+                        <span class="text-muted">Initializing data stream...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -297,52 +314,63 @@
     <script>
         let chartInstance = null;
 
-        function toggleTheme() {
-            const html = document.documentElement;
-            const next = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-bs-theme', next);
-            localStorage.setItem('theme', next);
-            updateIcons(next);
-            updateChartTheme(next);
-        }
-
-        function updateIcons(theme) {
-            const icon = document.getElementById('themeIcon');
-            icon.className = theme === 'light' ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars-fill text-white';
-        }
-
-        function initTheme() {
-            const saved = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-bs-theme', saved);
-            updateIcons(saved);
-        }
-
-        function updateChartTheme(theme) {
-            if(!chartInstance) return;
-            const isDark = theme === 'dark';
-            const color = isDark ? '#64748b' : '#94a3b8';
-            const grid = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
-            
-            const accent = isDark ? '#06b6d4' : '#3b82f6'; 
-
-            chartInstance.options.scales.x.ticks.color = color;
-            chartInstance.options.scales.y.ticks.color = color;
-            chartInstance.options.scales.y.grid.color = grid;
-            
-            chartInstance.data.datasets[0].borderColor = accent;
-            chartInstance.data.datasets[0].backgroundColor = (context) => {
-                const ctx = context.chart.ctx;
-                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                gradient.addColorStop(0, isDark ? 'rgba(6, 182, 212, 0.3)' : 'rgba(59, 130, 246, 0.3)');
-                gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                return gradient;
-            };
-
-            chartInstance.update('none');
-        }
-
-        function renderChart(history) {
+        // --- CHART CONFIGURATION ---
+        function initChart(history) {
             const ctx = document.getElementById('chart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.25)'); // Blue glow
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Net PnL ($)',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0f172a',
+                        pointBorderColor: '#3b82f6',
+                        pointHoverBackgroundColor: '#fff',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { 
+                            mode: 'index', intersect: false, 
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                            titleFont: { family: 'JetBrains Mono' },
+                            bodyFont: { family: 'JetBrains Mono' },
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 8 } 
+                        },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } 
+                        }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                }
+            });
+            updateChartData(history);
+        }
+
+        function updateChartData(history) {
+            if(!chartInstance) return;
+            
             const data = [];
             const labels = [];
             let sum = 0;
@@ -350,46 +378,20 @@
             [...history].reverse().forEach(h => {
                 sum += parseFloat(h.profit_usdt);
                 data.push(sum);
-                labels.push(h.exit_time.split(' ')[1]);
+                labels.push(h.exit_time.split(' ')[1]); // HH:MM:SS
             });
 
-            if (chartInstance) {
-                chartInstance.data.labels = labels;
-                chartInstance.data.datasets[0].data = data;
-                chartInstance.update('none');
-            } else {
-                chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Net PnL ($)',
-                            data: data,
-                            borderColor: '#06b6d4',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 0,
-                            pointHoverRadius: 6,
-                            pointHoverBackgroundColor: '#fff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-                        scales: {
-                            x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
-                            y: { border: { display: false } }
-                        },
-                        interaction: { mode: 'nearest', axis: 'x', intersect: false }
-                    }
-                });
-                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-                updateChartTheme(currentTheme);
-            }
+            chartInstance.data.labels = labels;
+            chartInstance.data.datasets[0].data = data;
+            
+            // Dynamic Color based on Profit
+            const color = sum >= 0 ? '#3b82f6' : '#f6465d';
+            chartInstance.data.datasets[0].borderColor = color;
+            
+            chartInstance.update('none');
         }
 
+        // --- API & UI LOGIC ---
         async function setSetting(key, val) {
             try {
                 await fetch('/api/set', {
@@ -404,71 +406,108 @@
                 const res = await fetch('/api/data');
                 const d = await res.json();
 
-                document.getElementById('serverClock').innerText = new Date().toLocaleTimeString('en-US', {hour12: false});
+                // 1. Clock & Basic Info
+                document.getElementById('serverClock').innerText = new Date().toLocaleTimeString('en-GB');
                 document.getElementById('exLabel').innerText = d.settings.exchange;
-                
-                if (d.settings.mode === 'SPOT') document.getElementById('spot').checked = true;
-                else document.getElementById('fut').checked = true;
+                document.getElementById('bal').innerText = parseFloat(d.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
 
-                document.getElementById('bal').innerText = "$ " + d.balance;
+                // Radio Button Styling
+                const spotLbl = document.getElementById('lblSpot');
+                const futLbl = document.getElementById('lblFut');
+                if (d.settings.mode === 'SPOT') {
+                    document.getElementById('spot').checked = true;
+                    spotLbl.className = "btn btn-sm w-50 rounded-2 bg-success text-white border-0 shadow-sm";
+                    futLbl.className = "btn btn-sm w-50 rounded-2 text-muted";
+                } else {
+                    document.getElementById('fut').checked = true;
+                    spotLbl.className = "btn btn-sm w-50 rounded-2 text-muted";
+                    futLbl.className = "btn btn-sm w-50 rounded-2 bg-danger text-white border-0 shadow-sm";
+                }
 
-                const setPing = (id, val) => {
+                // 2. Ping Logic
+                const updatePing = (id, dotId, val) => {
                     const el = document.getElementById(id);
+                    const dot = document.getElementById(dotId);
+                    
                     el.innerText = (val === 999 ? "TIMEOUT" : val + " ms");
-                    if(val < 200) el.style.color = "var(--bs-success)";
-                    else if(val < 500) el.style.color = "var(--bs-warning)";
-                    else el.style.color = "var(--bs-danger)";
+                    
+                    if(val < 200) { el.style.color = "var(--success-neon)"; dot.className = "rounded-circle bg-success"; }
+                    else if(val < 500) { el.style.color = "var(--warning-neon)"; dot.className = "rounded-circle bg-warning"; }
+                    else { el.style.color = "var(--danger-neon)"; dot.className = "rounded-circle bg-danger"; }
                 };
-                setPing('pingExBadge', d.pings.exchange);
-                setPing('pingNetBadge', d.pings.net);
+                updatePing('pingExBadge', 'pingExDot', d.pings.exchange);
+                updatePing('pingNetBadge', 'pingNetDot', d.pings.net);
 
-                document.getElementById('logContent').innerHTML = d.logs.map(l => {
-                    let c = '#9ca3af';
-                    if (l.includes('BUY')) c = '#4ade80';
-                    else if (l.includes('SELL')) c = '#f87171';
-                    else if (l.includes('⚠️') || l.includes('Err')) c = '#facc15';
-                    return `<div class="log-line" style="color:${c}">${l}</div>`;
-                }).join('') || '<span class="text-muted small">System standby...</span>';
-
+                // 3. Open Positions
                 const posBody = document.getElementById('posBody');
                 if (!Object.keys(d.positions).length) {
-                    posBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4 opacity-50">NO ACTIVE POSITIONS</td></tr>`;
+                    posBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5 opacity-25" style="letter-spacing: 2px;">NO ACTIVE POSITIONS</td></tr>`;
                 } else {
                     posBody.innerHTML = Object.keys(d.positions).map(sym => {
                         const p = d.positions[sym];
-                        const color = p.side === 'LONG' ? 'text-success' : 'text-danger';
+                        const isLong = p.side === 'LONG';
+                        const badgeClass = isLong ? 'bg-win-subtle' : 'bg-loss-subtle';
+                        const time = new Date(p.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
                         return `
                             <tr>
-                                <td class="fw-bold">${sym}</td>
-                                <td class="text-center"><span class="${color} fw-bold">${p.side}</span> <span class="text-muted mx-1">/</span> ${p.leverage}x</td>
-                                <td class="text-end text-muted">${p.entry_price}</td>
+                                <td class="fw-bold text-white">${sym}</td>
+                                <td><span class="badge ${badgeClass}">${p.side}</span> <span class="text-muted small">x${p.leverage}</span></td>
+                                <td class="text-end text-muted">$${parseFloat(p.amount_margin).toFixed(1)}</td>
+                                <td class="text-end text-primary">${p.entry_price}</td>
+                                <td class="text-end text-muted opacity-50">${time}</td>
                             </tr>
                         `;
                     }).join('');
                 }
 
+                // 4. History
                 const histBody = document.getElementById('histBody');
                 if (!d.history.length) {
-                    histBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4 opacity-50">NO HISTORY DATA</td></tr>`;
+                    histBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5 opacity-25" style="letter-spacing: 2px;">NO HISTORY</td></tr>`;
                 } else {
-                    histBody.innerHTML = d.history.slice(0, 5).map(h => {
-                        const isWin = h.profit_usdt >= 0;
+                    histBody.innerHTML = d.history.slice(0, 8).map(h => {
+                        const pnl = parseFloat(h.profit_usdt);
+                        const margin = h.amount_margin ? parseFloat(h.amount_margin) : 0;
+                        const roi = margin > 0 ? ((pnl/margin)*100).toFixed(2) : '0.00';
+                        const isWin = pnl >= 0;
+                        const colorClass = isWin ? 'text-win' : 'text-loss';
+                        const sideColor = h.side === 'SHORT' ? 'text-danger' : 'text-success';
+                        
                         return `
                             <tr>
                                 <td class="fw-bold text-muted">${h.symbol}</td>
-                                <td class="text-center ${isWin ? 'text-success' : 'text-danger'} fw-bold">${isWin?'+':''}${h.profit_usdt} $</td>
-                                <td class="text-end text-muted opacity-50">${h.exit_time.split(' ')[1]}</td>
+                                <td class="small fw-bold ${sideColor}">${h.side || 'LONG'}</td>
+                                <td class="text-end fw-bold ${colorClass}">${isWin?'+':''}${pnl}</td>
+                                <td class="text-end fw-bold ${colorClass}">${isWin?'+':''}${roi}%</td>
+                                <td class="text-end"><span class="badge border border-secondary text-secondary bg-transparent font-weight-normal">${h.reason}</span></td>
+                                <td class="text-end small opacity-50">
+                                    <span class="text-muted">${h.entry_price || '-'}</span> 
+                                    <i class="bi bi-arrow-right mx-1" style="font-size: 0.7rem;"></i> 
+                                    <span>${h.exit_price}</span>
+                                </td>
                             </tr>
                         `;
                     }).join('');
                 }
 
-                renderChart(d.history);
+                // 5. Logs
+                document.getElementById('logContent').innerHTML = d.logs.map(l => {
+                    let color = '#737373';
+                    if (l.includes('BUY')) color = '#4ade80';
+                    else if (l.includes('SELL')) color = '#f87171';
+                    else if (l.includes('⚠️') || l.includes('Err')) color = '#facc15';
+                    return `<div style="color:${color}; border-bottom: 1px solid rgba(255,255,255,0.02); padding: 2px 0;">${l}</div>`;
+                }).join('') || '<div class="text-center mt-5 text-muted opacity-25">SYSTEM READY</div>';
+
+                // 6. Chart
+                updateChartData(d.history);
 
             } catch (e) { console.error(e); }
         }
 
-        initTheme();
+        // Initialize
+        initChart([]);
         update();
         setInterval(update, 2000);
     </script>
