@@ -22,12 +22,30 @@ async def get_active_exchanges(exchanges):
     s = state.get_settings()
     name = s.get('exchange', 'MEXC')
     mode = s.get('mode', 'SPOT')
-    
-    if name == 'COINEX':
-        return exchanges['coinex_spot'], exchanges['coinex_fut'], name, mode
+    if name == 'COINEX': return exchanges['coinex_spot'], exchanges['coinex_fut'], name, mode
     return exchanges['mexc_spot'], exchanges['mexc_fut'], name, mode
 
-async def sync_wallet_positions(exchanges):
+async def do_exit(ex, sym, pos, current_price, reason):
+    side = pos.get('side', 'LONG')
+    amount = float(pos['amount_coin'])
+    
+    log(f"⚠️ Attempting Exit: {sym} ({reason})")
+    
+    try:
+        if side == 'LONG':
+            order = await ex.create_market_sell_order(sym, amount, params={'reduceOnly': True} if pos.get('mode')=='FUTURE' else {})
+        else:
+            order = await ex.create_market_buy_order(sym, amount, params={'reduceOnly': True} if pos.get('mode')=='FUTURE' else {})
+            
+        log(f"✅ Exit Success: {sym} closed at {current_price}")
+        state.close_position(sym, current_price, reason)
+        
+    except Exception as e:
+        log(f"❌ Exit FAILED for {sym}: {e}")
+        log("Position kept in DB for retry.")
+
+async def analysis_loop(exchanges):
+    log("🚀 Aggressive Scalper Started...")
     while True:
         try:
             spot, fut, ex_name, mode = await get_active_exchanges(exchanges)
@@ -35,80 +53,90 @@ async def sync_wallet_positions(exchanges):
             
             positions = state.get_positions()
             if positions:
-                balance = await ex.fetch_balance()
                 for sym, pos in list(positions.items()):
                     if pos.get('exchange') != ex_name or pos.get('mode') != mode: continue
-                    coin = sym.split('/')[0]
-                    actual = float(balance.get(coin, {'total':0})['total'])
-                    recorded = float(pos['amount_coin'])
-                    if actual < (recorded * 0.1):
-                        log(f"⚠️ Manual Sell: {sym}. Closing in DB.")
-                        state.close_position(sym, pos['entry_price'], "Manual Sell")
-        except Exception as e:
-            pass
-        await asyncio.sleep(5)
+                    
+                    try:
+                        ticker = await ex.fetch_ticker(sym)
+                        curr_price = ticker['last']
+                        entry = float(pos['entry_price'])
+                        side = pos.get('side', 'LONG')
+                        
+                        sl_pct = config.STOP_LOSS_PERCENT
+                        tp_pct = config.TAKE_PROFIT_PERCENT
+                        
+                        should_exit = False
+                        reason = ""
+                        
+                        if side == 'LONG':
+                            if curr_price <= entry * (1 - sl_pct): should_exit=True; reason="⛔ SL"
+                            elif curr_price >= entry * (1 + tp_pct): should_exit=True; reason="💰 TP"
+                        else:
+                            if curr_price >= entry * (1 + sl_pct): should_exit=True; reason="⛔ SL"
+                            elif curr_price <= entry * (1 - tp_pct): should_exit=True; reason="💰 TP"
+                            
+                        if should_exit:
+                            await do_exit(ex, sym, pos, curr_price, reason)
+                            
+                    except Exception as e: log(f"Check Exit Err {sym}: {e}")
 
-async def analysis(exchanges):
-    log("🚀 Bot Engine Started...")
-    while True:
-        try:
-            spot, fut, ex_name, mode = await get_active_exchanges(exchanges)
-            ex = spot if mode == 'SPOT' else fut
-            
             try: 
-                bal = await ex.fetch_balance()
-                usdt = float(bal['total']['USDT'])
+                bal_data = await ex.fetch_balance()
+                usdt = float(bal_data['total']['USDT'])
             except: usdt = 0.0
             
             if usdt > config.MIN_TRADE_AMOUNT:
-                log(f"🔎 Scan {ex_name}-{mode} | Bal: {usdt:.2f}$")
                 
                 for sym in config.SYMBOLS:
                     if state.get_position(sym): continue
                     if usdt < config.MIN_TRADE_AMOUNT: break
                     
                     try:
-                        ohlcv = await spot.fetch_ohlcv(sym, config.TIMEFRAME, limit=100)
+                        ohlcv = await spot.fetch_ohlcv(sym, config.TIMEFRAME, limit=50)
                         df = pd.DataFrame(ohlcv, columns=['timestamp','open','high','low','close','volume'])
                         dec = ai_engine.analyze_symbol(df, usdt, sym)
                         
                         action = dec['action']
                         if action == 'BUY' or (action == 'SELL' and mode == 'FUTURE'):
-                            amt = dec['amount']
-                            lev = dec['leverage'] if mode=='FUTURE' else 1
-                            side = 'LONG' if action == 'BUY' else 'SHORT'
                             
-                            log(f"⚡ {side}: {sym} | {dec['reason']}")
+                            log(f"⚡ SIGNAL: {action} {sym} | Score: {dec['confidence']}")
+                            
+                            amt_usdt = dec['amount']
+                            lev = dec['leverage'] if mode=='FUTURE' else 1
                             
                             if mode=='FUTURE': await ex.set_leverage(lev, sym)
                             
                             price = df.iloc[-1]['close']
-                            coin_amt = (amt * lev) / price
+                            coin_amt = (amt_usdt * lev) / price
                             
-                            if side == 'LONG': order = await ex.create_market_buy_order(sym, coin_amt)
-                            else: order = await ex.create_market_sell_order(sym, coin_amt)
+                            if action == 'BUY': 
+                                side = 'LONG'
+                                order = await ex.create_market_buy_order(sym, coin_amt)
+                            else: 
+                                side = 'SHORT'
+                                order = await ex.create_market_sell_order(sym, coin_amt)
                             
                             state.update_position(sym, {
-                                'entry_price': price, 'amount_coin': order['amount'],
-                                'amount_margin': amt, 'leverage': lev,
+                                'entry_price': price, 
+                                'amount_coin': order['amount'],
+                                'amount_margin': amt_usdt, 
+                                'leverage': lev,
                                 'mode': mode, 'side': side, 'exchange': ex_name,
                                 'timestamp': time.time()
                             })
-                            usdt -= amt
-                    except Exception as e:
-                        # log(f"Err {sym}: {e}")
-                        pass
-            else:
-                log(f"💤 Low Balance ({usdt:.2f}$)")
-                
-        except Exception as e:
-            log(f"❌ Main Loop Error: {e}")
+                            usdt -= amt_usdt
+                            log(f"✅ Opened {side} on {sym}")
+                            
+                    except Exception as e: pass
             
-        await asyncio.sleep(15)
+        except Exception as e:
+            log(f"Loop Err: {e}")
+            await asyncio.sleep(5)
+            
+        await asyncio.sleep(3)
 
 async def main():
-    opts = {'enableRateLimit': True}
-    
+    opts = {'enableRateLimit': True, 'timeout': 10000}
     exs = {
         'mexc_spot': ccxt.mexc({'apiKey': config.MEXC_API_KEY, 'secret': config.MEXC_SECRET_KEY, 'options':{'defaultType':'spot'}, **opts}),
         'mexc_fut': ccxt.mexc({'apiKey': config.MEXC_API_KEY, 'secret': config.MEXC_SECRET_KEY, 'options':{'defaultType':'swap'}, **opts}),
@@ -117,36 +145,15 @@ async def main():
     }
     
     try:
-        log("⏳ Loading Markets...")
-        tasks = [e.load_markets() for e in exs.values()]
-        await asyncio.gather(*tasks)
-        log("✅ Markets Loaded Successfully.")
-        
-        await asyncio.gather(
-            analysis(exs),
-            sync_wallet_positions(exs)
-        )
-        
-    except KeyboardInterrupt:
-        log("👋 Bot Stopped by User.")
-        
-    except Exception as e:
-        log(f"🔥 CRITICAL ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        
+        log("⏳ Connecting...")
+        await asyncio.gather(*[e.load_markets() for e in exs.values()])
+        log("✅ Connected. Starting Engines.")
+        await analysis_loop(exs)
+    except KeyboardInterrupt: pass
+    except Exception as e: log(f"Critical: {e}")
     finally:
-        log("🔌 Closing connections...")
-        for name, ex in exs.items():
-            try:
-                await ex.close()
-            except: pass
-        
-        await asyncio.sleep(0.25)
-        log("👋 Bye.")
+        for e in exs.values(): await e.close()
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    try: asyncio.run(main())
+    except: pass
