@@ -6,7 +6,7 @@ app = Flask(__name__)
 PING_TARGETS = {
     'MEXC': 'https://api.mexc.com/api/v3/ping',
     'COINEX': 'https://api.coinex.com/v1/common/maintain',
-    'GOOGLE': 'https://google.com'
+    'GOOGLE': 'https://https://dash.sakuranet.company:8443'
 }
 
 exchanges = {
@@ -19,14 +19,13 @@ def measure_ping(url):
         t1 = time.time()
         requests.get(url, timeout=0.8)
         return int((time.time() - t1) * 1000)
-    except:
-        return 999
+    except: return 999
 
 @app.route('/api/data')
 def get_data():
     s = state.get_settings()
     ex_name = s.get('exchange', 'MEXC')
-    ex_obj = exchanges.get(ex_name)
+    ex_obj = exchanges.get(ex_name, exchanges['MEXC'])
     
     try: bal = ex_obj.fetch_balance()['total']['USDT']
     except: bal = 0
@@ -43,18 +42,21 @@ def get_data():
         'positions': state.get_positions(),
         'history': state.get_history(),
         'logs': logs,
-        'pings': {
-            'net': ping_net,
-            'exchange': ping_ex
-        },
+        'pings': {'net': ping_net, 'exchange': ping_ex},
         'settings': s
     })
 
 @app.route('/api/set', methods=['POST'])
 def update_settings():
     data = request.json
+    
+    user_pass = data.get('password', '')
+    if user_pass != config.DASHBOARD_PASSWORD:
+        return jsonify({'error': 'Wrong Password'}), 401
+
     if 'mode' in data: state.set_setting('mode', data['mode'])
     if 'exchange' in data: state.set_setting('exchange', data['exchange'])
+    
     return jsonify({'ok': True})
 
 @app.route('/')

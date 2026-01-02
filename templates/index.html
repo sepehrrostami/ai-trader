@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIMBAHA | Pro Terminal</title>
+    <title>AI Trader</title>
     
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -24,12 +26,15 @@
             --neon-red: #ef4444;
             --neon-yellow: #f59e0b;
             --neon-purple: #8b5cf6;
+            --neon-cyan: #06b6d4;
 
             --text-main: #e4e4e7;
             --text-muted: #71717a;
 
             /* Effects */
             --glow-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+            --glow-green: 0 0 20px rgba(16, 185, 129, 0.15);
+            --glow-red: 0 0 20px rgba(239, 68, 68, 0.15);
             --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -38,11 +43,13 @@
             font-family: 'Inter', sans-serif;
             color: var(--text-main);
             min-height: 100vh;
-            /* Subtle Grid Background */
+            /* Subtle Grid Background with Animation */
             background-image: 
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
+            animation: gridPulse 20s ease-in-out infinite alternate;
+            overflow-x: hidden;
         }
 
         /* --- UTILITIES --- */
@@ -50,31 +57,93 @@
         .text-neon-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
         .text-neon-green { color: var(--neon-green); text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
         .text-neon-red { color: var(--neon-red); text-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        .text-neon-cyan { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(6, 182, 212, 0.4); }
 
         /* --- ANIMATIONS --- */
+        @keyframes gridPulse {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
         @keyframes pulse-green {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
+
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+
         .status-dot {
             width: 8px; height: 8px; border-radius: 50%;
             background: var(--neon-green);
             animation: pulse-green 2s infinite;
+            position: relative;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid var(--neon-green);
+            top: -3px;
+            left: -3px;
+            animation: pulse-blue 2s infinite 0.5s;
         }
-        .anim-item { opacity: 0; animation: slideIn 0.5s ease-out forwards; }
+
+        .anim-item { 
+            opacity: 0; 
+            animation: slideIn 0.5s ease-out forwards; 
+        }
+        
         .delay-1 { animation-delay: 0.1s; }
         .delay-2 { animation-delay: 0.2s; }
         .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        .float-anim {
+            animation: float 3s ease-in-out infinite;
+        }
 
         /* --- CARDS (The "HUD" Look) --- */
         .hud-card {
-            background: rgba(15, 15, 17, 0.7); /* Translucent */
+            background: rgba(15, 15, 17, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid var(--border-subtle);
             border-radius: 12px;
@@ -85,17 +154,39 @@
         }
 
         .hud-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            background: var(--border-subtle); transition: var(--transition-speed);
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 4px; 
+            height: 100%;
+            background: linear-gradient(to bottom, var(--border-subtle), var(--neon-blue));
+            transition: var(--transition-speed);
         }
 
         .hud-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-5px) scale(1.02);
             border-color: rgba(255,255,255,0.15);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.6), 0 0 30px rgba(59, 130, 246, 0.1);
         }
         
-        .hud-card:hover::before { background: var(--neon-blue); }
+        .hud-card:hover::before { 
+            background: linear-gradient(to bottom, var(--neon-blue), var(--neon-cyan));
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Scanning line effect */
+        .hud-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scanline 8s linear infinite;
+            opacity: 0.3;
+        }
 
         /* --- BUTTONS & INPUTS --- */
         .btn-cyber {
@@ -103,41 +194,234 @@
             border: 1px solid var(--border-subtle);
             color: var(--text-main);
             transition: var(--transition-speed);
-            border-radius: 6px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .btn-cyber::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-cyber:hover::before {
+            left: 100%;
+        }
+
         .btn-cyber:hover, .btn-cyber:active {
             background: var(--neon-blue);
             border-color: var(--neon-blue);
             color: #000;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
         }
 
         .btn-check:checked + .btn-cyber {
             background: var(--neon-purple);
             border-color: var(--neon-purple);
             color: #fff;
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            animation: glowPulse 2s infinite;
         }
 
         /* --- TABLES --- */
         .table { --bs-table-bg: transparent; --bs-table-color: var(--text-muted); }
         .table th {
-            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
-            border-bottom: 1px solid var(--border-subtle); color: #52525b; font-weight: 700;
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-subtle); 
+            color: #52525b; 
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
         }
-        .table td { border-bottom: 1px solid rgba(255,255,255,0.02); padding: 1rem 0.5rem; vertical-align: middle; }
-        .table tr:hover td { color: #fff; background: rgba(255,255,255,0.02); }
+
+        .table th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--neon-blue);
+            transition: width 0.3s ease;
+        }
+
+        .table th:hover::after {
+            width: 100%;
+        }
+
+        .table td { 
+            border-bottom: 1px solid rgba(255,255,255,0.02); 
+            padding: 1rem 0.5rem; 
+            vertical-align: middle;
+            transition: var(--transition-speed);
+        }
+
+        .table tr {
+            transition: var(--transition-speed);
+        }
+
+        .table tr:hover td { 
+            color: #fff; 
+            background: rgba(255,255,255,0.03);
+            transform: translateX(5px);
+        }
+
+        /* Number animation */
+        .number-animate {
+            position: relative;
+            display: inline-block;
+        }
+
+        .number-animate::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 0;
+            height: 2px;
+            background: var(--neon-blue);
+            transition: width 0.3s ease;
+        }
+
+        .number-animate.changing::after {
+            width: 100%;
+        }
 
         /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-core); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
+        ::-webkit-scrollbar-thumb { 
+            background: #333; 
+            border-radius: 4px;
+            transition: var(--transition-speed);
+        }
+        ::-webkit-scrollbar-thumb:hover { 
+            background: var(--neon-blue); 
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
 
         /* --- MODAL --- */
-        .modal-content { background: #0a0a0a; border: 1px solid var(--border-subtle); }
-        .log-line { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 3px 0; font-size: 0.8rem; }
+        .modal-content { 
+            background: #0a0a0a; 
+            border: 1px solid var(--border-subtle);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideIn 0.3s ease-out forwards;
+        }
 
+        /* Password Input Style */
+        .form-control-dark {
+            background: #18181b; 
+            border: 1px solid #3f3f46; 
+            color: #fff;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 3px;
+        }
+        .form-control-dark:focus { 
+            background: #18181b; 
+            color: #fff; 
+            border-color: var(--neon-blue); 
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); 
+        }
+
+        .log-line { 
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
+            padding: 8px 0; 
+            font-size: 0.8rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .log-line:nth-child(odd) {
+            background: rgba(255,255,255,0.01);
+        }
+
+        /* Terminal cursor effect */
+        #logContent::after {
+            content: '▋';
+            color: var(--neon-green);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Header Glitch Effect */
+        .header-glitch {
+            position: relative;
+        }
+
+        .header-glitch::before,
+        .header-glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+
+        .header-glitch::before {
+            animation: glitch-1 5s infinite linear alternate-reverse;
+            color: var(--neon-red);
+            z-index: -1;
+        }
+
+        .header-glitch::after {
+            animation: glitch-2 5s infinite linear alternate-reverse;
+            color: var(--neon-cyan);
+            z-index: -2;
+        }
+
+        @keyframes glitch-1 {
+            0% { clip-path: inset(40% 0 61% 0); transform: translate(-2px, 2px); }
+            5% { clip-path: inset(92% 0 1% 0); transform: translate(1px, -2px); }
+            10% { clip-path: inset(43% 0 1% 0); transform: translate(-1px, 2px); }
+            /* ... (simplified for brevity, keeps effect) ... */
+            100% { clip-path: inset(20% 0 70% 0); transform: translate(-2px, 2px); }
+        }
+
+        @keyframes glitch-2 {
+            0% { clip-path: inset(25% 0 58% 0); transform: translate(2px, -2px); }
+            /* ... (simplified for brevity, keeps effect) ... */
+            100% { clip-path: inset(85% 0 15% 0); transform: translate(2px, 2px); }
+        }
+
+        /* Progress bar animation */
+        .progress-bar-animate {
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan), var(--neon-blue));
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+        }
+
+        /* Ripple effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="py-4">
@@ -146,9 +430,9 @@
         
         <div class="d-flex justify-content-between align-items-center mb-5 anim-item">
             <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-cpu-fill fs-3 text-neon-blue"></i>
+                <i class="bi bi-cpu-fill fs-3 text-neon-blue float-anim"></i>
                 <div>
-                    <h4 class="m-0 fw-bold" style="letter-spacing: -1px;">NIMBAHA <span class="text-neon-blue">AI</span></h4>
+                    <h4 class="m-0 fw-bold header-glitch" data-text="NIMBAHA AI" style="letter-spacing: -1px;">NIMBAHA <span class="text-neon-blue">AI</span></h4>
                     <div class="d-flex align-items-center gap-2 small text-muted font-mono">
                         <div class="status-dot"></div>
                         <span id="serverClock">CONNECTING...</span>
@@ -157,7 +441,7 @@
             </div>
             
             <div class="d-flex gap-2">
-                <button class="btn btn-cyber d-flex align-items-center gap-2 px-3" data-bs-toggle="modal" data-bs-target="#logModal">
+                <button class="btn btn-cyber d-flex align-items-center gap-2 px-3" data-bs-toggle="modal" data-bs-target="#logModal" id="logBtn">
                     <i class="bi bi-terminal"></i> <span class="d-none d-md-inline small">LOGS</span>
                 </button>
             </div>
@@ -176,17 +460,14 @@
                             <i class="bi bi-chevron-down small"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark w-100 border border-secondary">
-                            <li><a class="dropdown-item font-mono small" href="#" onclick="setSetting('exchange','MEXC')">MEXC_GLOBAL</a></li>
-                            <li><a class="dropdown-item font-mono small" href="#" onclick="setSetting('exchange','COINEX')">COINEX_EX</a></li>
+                            <li><a class="dropdown-item font-mono small" href="#" onclick="requestChange('exchange','MEXC')">MEXC_GLOBAL</a></li>
+                            <li><a class="dropdown-item font-mono small" href="#" onclick="requestChange('exchange','COINEX')">COINEX_EX</a></li>
                         </ul>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <input type="radio" class="btn-check" name="mode" id="spot" onclick="setSetting('mode','SPOT')">
-                        <label class="btn btn-cyber w-50 small font-mono" for="spot">SPOT</label>
-
-                        <input type="radio" class="btn-check" name="mode" id="fut" onclick="setSetting('mode','FUTURE')">
-                        <label class="btn btn-cyber w-50 small font-mono" for="fut">FUTURES</label>
+                        <button class="btn btn-cyber w-50 small font-mono" id="btnSpot" onclick="requestChange('mode','SPOT')">SPOT</button>
+                        <button class="btn btn-cyber w-50 small font-mono" id="btnFut" onclick="requestChange('mode','FUTURE')">FUTURES</button>
                     </div>
                 </div>
             </div>
@@ -195,14 +476,19 @@
                 <div class="hud-card h-100 d-flex flex-column justify-content-center anim-item delay-1">
                     <div class="d-flex justify-content-between">
                         <span class="text-muted small fw-bold">EQUITY (USDT)</span>
-                        <i class="bi bi-wallet2 text-neon-purple"></i>
+                        <i class="bi bi-wallet2 text-neon-purple float-anim"></i>
                     </div>
                     <div class="mt-2">
-                        <span class="fs-1 fw-bold font-mono text-white" id="bal">---</span>
+                        <span class="fs-1 fw-bold font-mono text-white number-animate" id="bal">---</span>
                         <span class="fs-5 text-muted ms-1">$</span>
                     </div>
                     <div class="small text-muted mt-2 opacity-50">
                         Available for trading
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress" style="height: 3px; background: rgba(255,255,255,0.1);">
+                            <div class="progress-bar progress-bar-animate" id="balanceBar" style="width: 50%;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -213,12 +499,19 @@
                     
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
                         <span class="small text-muted font-mono">API_PING</span>
-                        <span class="badge bg-dark border border-secondary text-white font-mono rounded-1" id="pingExBadge">-- ms</span>
+                        <span class="badge bg-dark border border-secondary text-white font-mono rounded-1 pulse-badge" id="pingExBadge">-- ms</span>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="small text-muted font-mono">NET_UPLINK</span>
-                        <span class="badge bg-dark border border-secondary text-white font-mono rounded-1" id="pingNetBadge">-- ms</span>
+                        <span class="badge bg-dark border border-secondary text-white font-mono rounded-1 pulse-badge" id="pingNetBadge">-- ms</span>
+                    </div>
+                    
+                    <div class="mt-4 pt-2 border-top border-secondary border-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted font-mono">UPTIME</span>
+                            <span class="badge bg-dark border border-success border-opacity-25 text-white font-mono rounded-1" id="uptimeBadge">00:00:00</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -230,7 +523,8 @@
                     <h6 class="m-0 fw-bold text-white font-mono"><i class="bi bi-graph-up me-2 text-neon-blue"></i>PNL_ANALYTICS</h6>
                 </div>
                 <div class="d-flex gap-2">
-                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 font-mono">LIVE DATA</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 font-mono pulse-badge">LIVE DATA</span>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 font-mono" id="totalPnl">+0.00%</span>
                 </div>
             </div>
             <div style="height: 350px; width: 100%;">
@@ -283,6 +577,21 @@
 
     </div>
 
+    <div class="modal fade" id="passModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0 pt-3">
+                    <h6 class="modal-title font-mono text-neon-red mx-auto"><i class="bi bi-shield-lock-fill me-2"></i>SECURITY CHECK</h6>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="small text-muted mb-2 font-mono">Authorization Required</p>
+                    <input type="password" id="adminPass" class="form-control form-control-dark font-mono text-center mb-3" placeholder="******">
+                    <button onclick="confirmChange()" class="btn btn-cyber w-100 text-warning fw-bold font-mono">AUTHORIZE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="logModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content shadow-lg">
@@ -292,7 +601,7 @@
                 </div>
                 <div class="modal-body bg-black p-0">
                     <div id="logContent" class="font-mono p-3 small" style="min-height: 400px; color: #a3a3a3; font-size: 0.8rem; line-height: 1.8;">
-                        <span class="text-muted">Waiting for data stream...</span>
+                        <span class="text-muted">Initializing terminal...</span>
                     </div>
                 </div>
             </div>
@@ -302,6 +611,60 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let chartInstance = null;
+        let previousBalance = null;
+        let startTime = Date.now();
+        
+        // Security logic
+        let pendingChange = null;
+        const passModal = new bootstrap.Modal(document.getElementById('passModal'));
+
+        // --- PASSWORD LOGIC ---
+        function requestChange(key, val) {
+            pendingChange = { key, val };
+            document.getElementById('adminPass').value = '';
+            passModal.show();
+        }
+
+        async function confirmChange() {
+            const pwd = document.getElementById('adminPass').value;
+            if(!pwd) return;
+
+            try {
+                const res = await fetch('/api/set', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ ...pendingChange, password: pwd })
+                });
+
+                if (res.status === 401) {
+                    alert('❌ WRONG PASSWORD');
+                } else {
+                    passModal.hide();
+                    update(); // Refresh UI
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // --- Ripple Effect ---
+        document.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            ripple.style.left = e.clientX + 'px';
+            ripple.style.top = e.clientY + 'px';
+            document.body.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        // --- Uptime Counter ---
+        function updateUptime() {
+            const elapsed = Date.now() - startTime;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('uptimeBadge').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        setInterval(updateUptime, 1000);
 
         // --- CHART CONFIG ---
         function initChart(history) {
@@ -327,18 +690,42 @@
                         pointBorderColor: '#3b82f6',
                         pointHoverBackgroundColor: '#fff',
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono' } } },
-                        y: { grid: { color: '#18181b' }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono' } } }
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 15, 17, 0.9)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            titleColor: '#fff',
+                            bodyColor: '#e4e4e7',
+                            padding: 10,
+                            cornerRadius: 6
+                        }
                     },
-                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                    scales: {
+                        x: { 
+                            grid: { display: false, color: '#18181b' }, 
+                            ticks: { color: '#52525b', font: { family: 'JetBrains Mono' } } 
+                        },
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { 
+                                color: '#52525b', 
+                                font: { family: 'JetBrains Mono' },
+                                callback: function(value) { return '$' + value.toLocaleString(); }
+                            } 
+                        }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                    animations: { tension: { duration: 1000, easing: 'linear' } }
                 }
             });
             updateChartData(history);
@@ -354,49 +741,87 @@
             [...history].reverse().forEach(h => {
                 sum += parseFloat(h.profit_usdt);
                 data.push(sum);
-                labels.push(h.exit_time.split(' ')[1]);
+                const date = new Date(h.exit_time);
+                labels.push(date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
             });
 
             chartInstance.data.labels = labels;
             chartInstance.data.datasets[0].data = data;
             
-            // Color Logic: Green if overall profit, Red if loss
             const color = sum >= 0 ? '#10b981' : '#ef4444';
             chartInstance.data.datasets[0].borderColor = color;
             chartInstance.data.datasets[0].pointBorderColor = color;
             
             chartInstance.update('none');
+            
+            const totalPnlElement = document.getElementById('totalPnl');
+            const pnlPercent = history.length > 0 ? (sum / history.reduce((acc, h) => acc + parseFloat(h.amount_margin || 0), 0) * 100).toFixed(2) : 0;
+            totalPnlElement.textContent = `${sum >= 0 ? '+' : ''}${pnlPercent}%`;
+            totalPnlElement.className = `badge ${sum >= 0 ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${sum >= 0 ? 'text-success' : 'text-danger'} border ${sum >= 0 ? 'border-success' : 'border-danger'} border-opacity-25 font-mono`;
+        }
+
+        // --- Number Animation ---
+        function animateNumberChange(element, newValue) {
+            if (element.textContent !== newValue) {
+                element.classList.add('changing');
+                setTimeout(() => {
+                    element.classList.remove('changing');
+                }, 300);
+            }
         }
 
         // --- CORE LOGIC ---
-        async function setSetting(key, val) {
-            try {
-                await fetch('/api/set', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({[key]: val}) });
-                update();
-            } catch(e) {}
-        }
-
         async function update() {
             try {
                 const res = await fetch('/api/data');
                 const d = await res.json();
 
                 // 1. Info
-                document.getElementById('serverClock').innerText = new Date().toLocaleTimeString('en-GB');
+                const timeString = new Date().toLocaleTimeString('en-GB');
+                document.getElementById('serverClock').innerText = timeString;
                 document.getElementById('exLabel').innerText = d.settings.exchange;
-                document.getElementById('bal').innerText = parseFloat(d.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                
+                // Balance with animation
+                const balanceElement = document.getElementById('bal');
+                const newBalance = parseFloat(d.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                if (balanceElement.textContent !== '---') {
+                    animateNumberChange(balanceElement, newBalance);
+                }
+                balanceElement.textContent = newBalance;
+                
+                const balanceBar = document.getElementById('balanceBar');
+                const balancePercent = Math.min(parseFloat(d.balance) / 10000 * 100, 100);
+                balanceBar.style.width = `${balancePercent}%`;
 
-                // Radio States
-                if (d.settings.mode === 'SPOT') document.getElementById('spot').checked = true;
-                else document.getElementById('fut').checked = true;
+                // Update Buttons based on state
+                const btnSpot = document.getElementById('btnSpot');
+                const btnFut = document.getElementById('btnFut');
+                
+                if (d.settings.mode === 'SPOT') {
+                    btnSpot.style.background = 'var(--neon-green)';
+                    btnSpot.style.color = '#000';
+                    btnSpot.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.4)';
+                    
+                    btnFut.style.background = ''; 
+                    btnFut.style.color = '';
+                    btnFut.style.boxShadow = '';
+                } else {
+                    btnFut.style.background = 'var(--neon-red)';
+                    btnFut.style.color = '#fff';
+                    btnFut.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
+                    
+                    btnSpot.style.background = ''; 
+                    btnSpot.style.color = '';
+                    btnSpot.style.boxShadow = '';
+                }
 
                 // 2. Ping Color Logic
                 const setPing = (id, val) => {
                     const el = document.getElementById(id);
                     el.innerText = (val === 999 ? "ERR" : val + " ms");
-                    if(val < 200) { el.className = "badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 font-mono rounded-1"; }
-                    else if(val < 500) { el.className = "badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 font-mono rounded-1"; }
-                    else { el.className = "badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 font-mono rounded-1"; }
+                    if(val < 100) el.className = "badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 font-mono rounded-1 pulse-badge"; 
+                    else if(val < 300) el.className = "badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 font-mono rounded-1 pulse-badge"; 
+                    else el.className = "badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 font-mono rounded-1 pulse-badge"; 
                 };
                 setPing('pingExBadge', d.pings.exchange);
                 setPing('pingNetBadge', d.pings.net);
@@ -411,16 +836,7 @@
                         const isLong = p.side === 'LONG';
                         const badgeClass = isLong ? 'text-neon-green' : 'text-neon-red';
                         const time = new Date(p.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                        
-                        return `
-                            <tr>
-                                <td class="fw-bold">${sym}</td>
-                                <td><span class="${badgeClass} fw-bold">${p.side}</span> <span class="text-muted small ms-1">${p.leverage}x</span></td>
-                                <td class="text-end">$${parseFloat(p.amount_margin).toFixed(2)}</td>
-                                <td class="text-end text-neon-blue">${p.entry_price}</td>
-                                <td class="text-end text-muted opacity-75">${time}</td>
-                            </tr>
-                        `;
+                        return `<tr><td class="fw-bold">${sym}</td><td><span class="${badgeClass} fw-bold">${p.side}</span> <span class="text-muted small ms-1">${p.leverage}x</span></td><td class="text-end">$${parseFloat(p.amount_margin).toFixed(2)}</td><td class="text-end text-neon-blue">${p.entry_price}</td><td class="text-end text-muted opacity-75">${time}</td></tr>`;
                     }).join('');
                 }
 
@@ -429,45 +845,49 @@
                 if (!d.history.length) {
                     histBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5 opacity-25 font-mono">-- EMPTY --</td></tr>`;
                 } else {
-                    histBody.innerHTML = d.history.slice(0, 8).map(h => {
+                    histBody.innerHTML = d.history.slice(0, 8).map((h, index) => {
                         const pnl = parseFloat(h.profit_usdt);
                         const margin = h.amount_margin ? parseFloat(h.amount_margin) : 0;
                         const roi = margin > 0 ? ((pnl/margin)*100).toFixed(2) : '0.00';
                         const isWin = pnl >= 0;
                         const colorClass = isWin ? 'text-neon-green' : 'text-neon-red';
-                        
-                        return `
-                            <tr>
-                                <td class="fw-bold text-muted">${h.symbol}</td>
-                                <td class="small ${h.side==='SHORT'?'text-danger':'text-success'}">${h.side||'LONG'}</td>
-                                <td class="text-end fw-bold ${colorClass}">${isWin?'+':''}${pnl}</td>
-                                <td class="text-end ${colorClass}">${isWin?'+':''}${roi}%</td>
-                                <td class="text-end"><span class="badge border border-secondary text-secondary bg-transparent">${h.reason}</span></td>
-                            </tr>
-                        `;
+                        const delay = index * 0.05;
+                        return `<tr style="animation-delay: ${delay}s"><td class="fw-bold text-muted">${h.symbol}</td><td class="small ${h.side==='SHORT'?'text-danger':'text-success'}">${h.side||'LONG'}</td><td class="text-end fw-bold ${colorClass}">${isWin?'+':''}${pnl}</td><td class="text-end ${colorClass}">${isWin?'+':''}${roi}%</td><td class="text-end"><span class="badge border border-secondary text-secondary bg-transparent">${h.reason}</span></td></tr>`;
                     }).join('');
                 }
 
                 // 5. Logs
-                document.getElementById('logContent').innerHTML = d.logs.map(l => {
+                const logContent = document.getElementById('logContent');
+                logContent.innerHTML = d.logs.map(l => {
                     let c = '#52525b';
                     if (l.includes('BUY')) c = '#10b981';
                     else if (l.includes('SELL')) c = '#ef4444';
                     else if (l.includes('SIGNAL')) c = '#3b82f6';
                     else if (l.includes('⚠️')) c = '#f59e0b';
+                    else if (l.includes('INFO')) c = '#8b5cf6';
                     return `<div class="log-line" style="color:${c}">${l}</div>`;
                 }).join('');
+                logContent.scrollTop = logContent.scrollHeight;
 
-                // 6. Chart
                 updateChartData(d.history);
 
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error(e);
+                document.getElementById('serverClock').innerText = 'DISCONNECTED';
+                document.getElementById('serverClock').classList.add('text-danger');
+            }
         }
 
-        // Boot
+        const style = document.createElement('style');
+        style.textContent = `.pulse-badge { animation: glowPulse 2s infinite; } @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } } tr { opacity: 0; animation: fadeIn 0.5s ease-out forwards; }`;
+        document.head.appendChild(style);
+
         initChart([]);
         update();
         setInterval(update, 2000);
+        
+        document.getElementById('logBtn').addEventListener('mouseenter', function() { this.style.transform = 'scale(1.1)'; });
+        document.getElementById('logBtn').addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
     </script>
 </body>
 </html>
